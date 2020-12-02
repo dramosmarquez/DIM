@@ -16,9 +16,10 @@ namespace REcoSample
      private System.Speech.Recognition.SpeechRecognitionEngine _recognizer = 
         new SpeechRecognitionEngine();
         private SpeechSynthesizer synth = new SpeechSynthesizer();
-        
+
+        private Boolean ganador = false;
         private String color="";
-        private int contador=9;
+        private int contador=0;
         private String[] tablero = new String[9];
         public Form1()
         {
@@ -28,7 +29,7 @@ namespace REcoSample
 
         private void Form1_Load(object sender, EventArgs e)
         {
-            synth.Speak("Bienvenido al diseño de interfaces avanzadas. Inicializando la Aplicación");
+            synth.Speak("Bienvenido, Inicializando el juego");
 
            Grammar grammar= CreateGrammarBuilderRGBSemantics2(null);
             _recognizer.SetInputToDefaultAudioDevice();
@@ -40,36 +41,100 @@ namespace REcoSample
             _recognizer.SpeechRecognized += new EventHandler<SpeechRecognizedEventArgs>(_recognizer_SpeechRecognized);
             //reconocimiento asíncrono y múltiples veces
             _recognizer.RecognizeAsync(RecognizeMode.Multiple);
-            synth.Speak("Aplicación preparada para reconocer su voz");
+            synth.Speak("Ya estamos listo para jugar.");
          }
 
      
 
         void _recognizer_SpeechRecognized(object sender, SpeechRecognizedEventArgs e)
         {
-                      //obtenemos un diccionario con los elementos semánticos
-                      SemanticValue semantics = e.Result.Semantics;
+            //obtenemos un diccionario con los elementos semánticos
+            SemanticValue semantics = e.Result.Semantics;
           
-                      string rawText = e.Result.Text;
-                      RecognitionResult result = e.Result;
+            string rawText = e.Result.Text;
+                      
+            if(color.Equals(rawText.Substring(0,1))){
+                synth.Speak("Ya has jugado, le toca al otro jugador");
+            }
+            else {
+                int jugada = (int)semantics["posicion"].Value;
+
+                if (tablero[jugada] == null)
+                {
+                    realizarJugada(jugada, rawText.Substring(0, 1));
+                    if (contador == 9)
+                    {
+                        synth.Speak("Fin de la partida");
                         
-                      
-                     if(color.Equals(rawText.Substring(0,1))){
-                         synth.Speak("Ya has jugado, le toca al otro jugador");
-                      }
-                    int jugada = semantics["posicion"].Value;
-                    
-                     if(tablero[jugada] == ""){
-                        tablero[jugada] = rawText.Substring(0,1);
-                        contador--;
-                     }else{
-                        synth.Speak("La jugada que has indicado no es válida");
-                        this.label1.Text=rawText;
-                     }
-                     color = rawText.Substring(0,1);
-                      
+                        if (!ganador)
+                        {
+                            synth.Speak("Ha ganado la vieja");
+                        }
+                        //pendiente añadir comandos para que reinicie o cierre
+                    }
+
+                    color = rawText.Substring(0, 1);
+                }
+                else
+                {
+                    synth.Speak("La jugada que has indicado no es válida");
+                }
+
+            }
+
         }
         
+        private void realizarJugada(int jugada, string jugador)
+        {
+
+            tablero[jugada] = jugador;
+            contador++;
+            switch (jugada)
+            {
+                case 0:
+                    this.button0.BackColor = jugador == "B" ? Color.White : Color.Black;
+                    this.button0.ForeColor = jugador == "B" ? Color.White : Color.Black; 
+                    break;
+                case 1:
+                    this.button1.BackColor = jugador == "B" ? Color.White : Color.Black;
+                    this.button1.ForeColor = jugador == "B" ? Color.White : Color.Black;
+                    break;
+                case 2:
+                    this.button2.BackColor = jugador == "B" ? Color.White : Color.Black;
+                    this.button2.ForeColor = jugador == "B" ? Color.White : Color.Black;
+                    break;
+                case 3:
+                    this.button3.BackColor = jugador == "B" ? Color.White : Color.Black;
+                    this.button3.ForeColor = jugador == "B" ? Color.White : Color.Black;
+                    break;
+                case 4:
+                    this.button4.BackColor = jugador == "B" ? Color.White : Color.Black;
+                    this.button4.ForeColor = jugador == "B" ? Color.White : Color.Black;
+                    break;
+                case 5:
+                    this.button5.BackColor = jugador == "B" ? Color.White : Color.Black;
+                    this.button5.ForeColor = jugador == "B" ? Color.White : Color.Black;
+                    break;
+                case 6:
+                    this.button6.BackColor = jugador == "B" ? Color.White : Color.Black;
+                    this.button6.ForeColor = jugador == "B" ? Color.White : Color.Black;
+                    break;
+                case 7:
+                    this.button7.BackColor = jugador == "B" ? Color.White : Color.Black;
+                    this.button7.ForeColor = jugador == "B" ? Color.White : Color.Black;
+                    break;
+                case 8:
+                    this.button8.BackColor = jugador == "B" ? Color.White : Color.Black;
+                    this.button8.ForeColor = jugador == "B" ? Color.White : Color.Black;
+                    break;
+            }
+                Update();
+        }
+        
+        private void comprobarGanador()
+        {
+            //pendiente
+        }
       
         private Grammar CreateGrammarBuilderRGBSemantics2(params int[] info)
         {
