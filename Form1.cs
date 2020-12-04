@@ -34,6 +34,7 @@ namespace REcoSample
 
            Grammar grammar= CreateGrammarBuilderRGBSemantics2(null);
             Grammar grammarAction = CreateGrammarActions();
+            Grammar grammarReiniciarAction = CreateGrammarReiniciarActions();
             _recognizer.SetInputToDefaultAudioDevice();
             _recognizer.UnloadAllGrammars();
             // Nivel de confianza del reconocimiento 70%
@@ -42,6 +43,7 @@ namespace REcoSample
             grammarAction.Enabled = true;
             _recognizer.LoadGrammar(grammar);
             _recognizer.LoadGrammar(grammarAction);
+            _recognizer.LoadGrammar(grammarReiniciarAction);
             _recognizer.SpeechRecognized += new EventHandler<SpeechRecognizedEventArgs>(_recognizer_SpeechRecognized);
             //reconocimiento asíncrono y múltiples veces
             _recognizer.RecognizeAsync(RecognizeMode.Multiple);
@@ -64,7 +66,36 @@ namespace REcoSample
                 if (rawText.Contains("Salir") && victory) {
                     synth.Speak("Saliendo de la aplicacion");
                     Application.Exit();
-                } else {
+                } else if (rawText.Contains("Reiniciar") && victory) {
+                    this.button0.BackColor = Color.Empty;
+                    this.button0.ForeColor = Color.Empty;
+                    this.button0.Text = "Uno";
+                    this.button1.BackColor = Color.Empty;
+                    this.button1.ForeColor = Color.Empty;
+                    this.button1.Text = "Dos";
+                    this.button2.BackColor = Color.Empty;
+                    this.button2.ForeColor = Color.Empty;
+                    this.button2.Text = "Tres";
+                    this.button3.BackColor = Color.Empty;
+                    this.button3.ForeColor = Color.Empty;
+                    this.button3.Text = "Cuatro";
+                    this.button4.BackColor = Color.Empty;
+                    this.button4.ForeColor = Color.Empty;
+                    this.button4.Text = "Cinco";
+                    this.button5.BackColor = Color.Empty;
+                    this.button5.ForeColor = Color.Empty;
+                    this.button5.Text = "Seis";
+                    this.button6.BackColor = Color.Empty;
+                    this.button6.ForeColor = Color.Empty;
+                    this.button6.Text = "Siete";
+                    this.button7.BackColor = Color.Empty;
+                    this.button7.ForeColor = Color.Empty;
+                    this.button7.Text = "Ocho";
+                    this.button8.BackColor = Color.Empty;
+                    this.button8.ForeColor = Color.Empty;
+                    this.button8.Text = "Nueve";
+                } 
+                else {
                     int jugada = (int)semantics["posicion"].Value;
 
                     if (tablero[jugada] == null)
@@ -259,6 +290,13 @@ namespace REcoSample
         private Grammar CreateGrammarActions() {
             GrammarBuilder salir = new GrammarBuilder("Salir");
             Grammar grammar = new Grammar(salir); 
+
+            return grammar;
+        }
+
+        private Grammar CreateGrammarReiniciarActions() {
+            GrammarBuilder reiniciar = new GrammarBuilder("Reiniciar");
+            Grammar grammar = new Grammar(reiniciar); 
 
             return grammar;
         }
