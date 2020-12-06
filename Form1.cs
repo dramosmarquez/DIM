@@ -50,7 +50,7 @@ namespace REcoSample
             _recognizer.SpeechRecognized += new EventHandler<SpeechRecognizedEventArgs>(_recognizer_SpeechRecognized);
             //reconocimiento asíncrono y múltiples veces
             _recognizer.RecognizeAsync(RecognizeMode.Multiple);
-            synth.Speak("Ya estamos listos para jugar, empieza el jugador blanco");
+            synth.Speak("Ya estamos listos para jugar");
          }
 
      
@@ -172,7 +172,7 @@ namespace REcoSample
         
         private void Reiniciar()
         {
-            synth.Speak("Reiniciando la partida, empieza el jugador blanco");
+            synth.Speak("Reiniciando la partida");
             partidaTerminada = false;
             tablero = new String[9];
             contador = 0;
