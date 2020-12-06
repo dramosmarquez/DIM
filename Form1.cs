@@ -21,7 +21,9 @@ namespace REcoSample
         private String color="";
         private int contador=0;
         private String[] tablero = new String[9];
-
+        private int blanco = 0, negro = 0, empate = 0;
+        
+          
         public Form1()
         {
             InitializeComponent();
@@ -30,9 +32,9 @@ namespace REcoSample
 
         private void Form1_Load(object sender, EventArgs e)
         {
-            synth.Speak("Bienvenido, Inicializando el juego");
+            synth.Speak("Bienvenidos, Inicializando el juego");
 
-           Grammar grammar= CreateGrammarBuilderRGBSemantics2(null);
+           Grammar grammar= CreateGrammarJugadas();
             Grammar grammarAction = CreateGrammarActions();
             Grammar grammarReiniciarAction = CreateGrammarReiniciarActions();
             _recognizer.SetInputToDefaultAudioDevice();
@@ -47,7 +49,7 @@ namespace REcoSample
             _recognizer.SpeechRecognized += new EventHandler<SpeechRecognizedEventArgs>(_recognizer_SpeechRecognized);
             //reconocimiento asíncrono y múltiples veces
             _recognizer.RecognizeAsync(RecognizeMode.Multiple);
-            synth.Speak("Ya estamos listos para jugar.");
+            synth.Speak("Ya estamos listos para jugar, empieza el jugador blanco");
          }
 
      
@@ -63,55 +65,24 @@ namespace REcoSample
                 synth.Speak("Ya has jugado, le toca al otro jugador");
             }
             else {
-                if (rawText.Contains("Salir") && victory) {
-                    synth.Speak("Saliendo de la aplicacion");
+                if (rawText.Contains("Salir")) {
+                    synth.Speak("Saliendo del juego.");
                     Application.Exit();
-                } else if (rawText.Contains("Reiniciar") && victory) {
-                    this.button0.BackColor = Color.Empty;
-                    this.button0.ForeColor = Color.Empty;
-                    this.button0.Text = "Uno";
-                    this.button1.BackColor = Color.Empty;
-                    this.button1.ForeColor = Color.Empty;
-                    this.button1.Text = "Dos";
-                    this.button2.BackColor = Color.Empty;
-                    this.button2.ForeColor = Color.Empty;
-                    this.button2.Text = "Tres";
-                    this.button3.BackColor = Color.Empty;
-                    this.button3.ForeColor = Color.Empty;
-                    this.button3.Text = "Cuatro";
-                    this.button4.BackColor = Color.Empty;
-                    this.button4.ForeColor = Color.Empty;
-                    this.button4.Text = "Cinco";
-                    this.button5.BackColor = Color.Empty;
-                    this.button5.ForeColor = Color.Empty;
-                    this.button5.Text = "Seis";
-                    this.button6.BackColor = Color.Empty;
-                    this.button6.ForeColor = Color.Empty;
-                    this.button6.Text = "Siete";
-                    this.button7.BackColor = Color.Empty;
-                    this.button7.ForeColor = Color.Empty;
-                    this.button7.Text = "Ocho";
-                    this.button8.BackColor = Color.Empty;
-                    this.button8.ForeColor = Color.Empty;
-                    this.button8.Text = "Nueve";
+                } else if (rawText.Contains("Reiniciar")) {
+                    Reiniciar();
                 } 
                 else {
                     int jugada = (int)semantics["posicion"].Value;
 
                     if (tablero[jugada] == null)
                     {
-                        realizarJugada(jugada, rawText.Substring(0, 1));
+                        RealizarJugada(jugada, rawText.Substring(0, 1));
 
-                        /*if (contador == 9)
+                        if (contador == 9)
                         {
-                            synth.Speak("Fin de la partida");
-                        
-                            if (!ganador)
-                            {
-                                synth.Speak("Ha ganado la vieja");
-                            }
-                            //pendiente añadir comandos para que reinicie o cierre
-                        }*/
+                            synth.Speak("Fin de la partida, no ha habido ganador");
+                            synth.Speak("Si deseas salir diga salir, si desea jugar otra partida diga reiniciar");
+                        }
 
                         color = rawText.Substring(0, 1);
                     }
@@ -124,7 +95,7 @@ namespace REcoSample
 
         }
         
-        private void realizarJugada(int jugada, string jugador)
+        private void RealizarJugada(int jugada, string jugador)
         {
 
             tablero[jugada] = jugador;
@@ -134,103 +105,108 @@ namespace REcoSample
             {
                 case 0:
                     this.button0.BackColor = color;
-                    this.button0.ForeColor = color;
                     this.button0.Text = "";
-                    if ((this.button4.BackColor == color && this.button8.BackColor == color) || (this.button2.BackColor == color && this.button1.BackColor == color)) {
-                        synth.Speak("Has ganado");
-                        victory = true;
-                    }
+                    victory = (this.button4.BackColor == color && this.button8.BackColor == color) || (this.button2.BackColor == color && this.button1.BackColor == color);
                     break;
                 case 1:
                     this.button1.BackColor = color;
-                    this.button1.ForeColor = color;
                     this.button1.Text = "";
-                    if ((this.button4.BackColor == color && this.button7.BackColor == color) || (this.button2.BackColor == color && this.button0.BackColor == color)) {
-                        synth.Speak("Has ganado");
-                        victory = true;
-                    }
+                    victory = (this.button4.BackColor == color && this.button7.BackColor == color) || (this.button2.BackColor == color && this.button0.BackColor == color);
                     break;
                 case 2:
                     this.button2.BackColor = color;
-                    this.button2.ForeColor = color;
                     this.button2.Text = "";
-                    if ((this.button4.BackColor == color && this.button6.BackColor == color) || (this.button1.BackColor == color && this.button0.BackColor == color) || (this.button4.BackColor == color && this.button6.BackColor == color)) {
-                        synth.Speak("Has ganado");
-                        victory = true;
-                    }
+                    victory = (this.button4.BackColor == color && this.button6.BackColor == color) || (this.button1.BackColor == color && this.button0.BackColor == color) || (this.button4.BackColor == color && this.button6.BackColor == color);
                     break;
                 case 3:
                     this.button3.BackColor = color;
-                    this.button3.ForeColor = color;
                     this.button3.Text = "";
-                    if ((this.button0.BackColor == color && this.button6.BackColor == color) || (this.button4.BackColor == color && this.button5.BackColor == color)) {
-                        synth.Speak("Has ganado");
-                        victory = true;
-                    }
+                    victory = (this.button0.BackColor == color && this.button6.BackColor == color) || (this.button4.BackColor == color && this.button5.BackColor == color);
                     break;
                 case 4:
                     this.button4.BackColor = color;
-                    this.button4.ForeColor = color;
                     this.button4.Text = "";
-                    if ((this.button1.BackColor == color && this.button7.BackColor == color) || (this.button3.BackColor == color && this.button5.BackColor == color) || (this.button6.BackColor == color && this.button2.BackColor == color) || (this.button0.BackColor == color && this.button8.BackColor == color)) {
-                        synth.Speak("Has ganado");
-                        victory = true;
-                    }
+                    victory = (this.button1.BackColor == color && this.button7.BackColor == color) || (this.button3.BackColor == color && this.button5.BackColor == color) || (this.button6.BackColor == color && this.button2.BackColor == color) || (this.button0.BackColor == color && this.button8.BackColor == color);
                     break;
                 case 5:
                     this.button5.BackColor = color;
-                    this.button5.ForeColor = color;
                     this.button5.Text = "";
-                    if ((this.button3.BackColor == color && this.button4.BackColor == color) || (this.button2.BackColor == color && this.button8.BackColor == color)) {
-                        synth.Speak("Has ganado");
-                        victory = true;
-                    }
+                    victory = (this.button3.BackColor == color && this.button4.BackColor == color) || (this.button2.BackColor == color && this.button8.BackColor == color);
                     break;
                 case 6:
                     this.button6.BackColor = color;
-                    this.button6.ForeColor = color;
                     this.button6.Text = "";
-                    if ((this.button4.BackColor == color && this.button2.BackColor == color) || (this.button0.BackColor == color && this.button3.BackColor == color) || (this.button7.BackColor == color && this.button8.BackColor == color)) {
-                        synth.Speak("Has ganado");
-                        victory = true;
-                    }
+                    victory = (this.button4.BackColor == color && this.button2.BackColor == color) || (this.button0.BackColor == color && this.button3.BackColor == color) || (this.button7.BackColor == color && this.button8.BackColor == color);
                     break;
                 case 7:
                     this.button7.BackColor = color;
-                    this.button7.ForeColor = color;
                     this.button7.Text = "";
-                    if ((this.button4.BackColor == color && this.button1.BackColor == color) || (this.button6.BackColor == color && this.button8.BackColor == color)) {
-                        synth.Speak("Has ganado");
-                        victory = true;
-                    }
+                    victory = (this.button4.BackColor == color && this.button1.BackColor == color) || (this.button6.BackColor == color && this.button8.BackColor == color);
                     break;
                 case 8:
                     this.button8.BackColor = color;
-                    this.button8.ForeColor = color;
                     this.button8.Text = "";
-                    if ((this.button6.BackColor == color && this.button7.BackColor == color) || (this.button0.BackColor == color && this.button4.BackColor == color) || (this.button2.BackColor == color && this.button5.BackColor == color)) {
-                        synth.Speak("Has ganado");
-                        victory = true;
-                    }
+                    victory = (this.button6.BackColor == color && this.button7.BackColor == color) || (this.button0.BackColor == color && this.button4.BackColor == color) || (this.button2.BackColor == color && this.button5.BackColor == color);
                     break;
             }
             Update();
 
             if (victory) {
-                synth.Speak("Si deseas salir di salir, si deseas jugar otra partida di reiniciar");
+                if(jugador == "B") { 
+                    synth.Speak("El jugador blanco ha ganado");
+                    blanco++;
+                    this.labelBlanco.Text = blanco.ToString();
+                }
+                else
+                {
+                    synth.Speak("El jugador negro ha ganado");
+                    negro++;
+                    this.labelNegro.Text = negro.ToString();
+                }
+                Update();
+                synth.Speak("Si desea salir diga salir, si desea jugar otra partida diga reiniciar");
             }
         }
         
-        private void comprobarGanador()
+        private void Reiniciar()
         {
-            //pendiente
+            synth.Speak("Reiniciando la partida, empieza el jugador blanco");
+            tablero = new String[9];
+            contador = 0;
+            color = "";
+            victory = false;
+            this.button0.BackColor = Color.Empty;
+            this.button0.ForeColor = Color.Empty;
+            this.button0.Text = "Uno";
+            this.button1.BackColor = Color.Empty;
+            this.button1.ForeColor = Color.Empty;
+            this.button1.Text = "Dos";
+            this.button2.BackColor = Color.Empty;
+            this.button2.ForeColor = Color.Empty;
+            this.button2.Text = "Tres";
+            this.button3.BackColor = Color.Empty;
+            this.button3.ForeColor = Color.Empty;
+            this.button3.Text = "Cuatro";
+            this.button4.BackColor = Color.Empty;
+            this.button4.ForeColor = Color.Empty;
+            this.button4.Text = "Cinco";
+            this.button5.BackColor = Color.Empty;
+            this.button5.ForeColor = Color.Empty;
+            this.button5.Text = "Seis";
+            this.button6.BackColor = Color.Empty;
+            this.button6.ForeColor = Color.Empty;
+            this.button6.Text = "Siete";
+            this.button7.BackColor = Color.Empty;
+            this.button7.ForeColor = Color.Empty;
+            this.button7.Text = "Ocho";
+            this.button8.BackColor = Color.Empty;
+            this.button8.ForeColor = Color.Empty;
+            this.button8.Text = "Nueve";
         }
       
-        private Grammar CreateGrammarBuilderRGBSemantics2(params int[] info)
+        private Grammar CreateGrammarJugadas()
         {
-            //synth.Speak("Creando ahora la gramática");
             Choices choice = new Choices();
-     
             
             SemanticResultValue choiceResultValue =
                     new SemanticResultValue("uno", 0);
