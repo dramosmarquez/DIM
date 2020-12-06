@@ -16,12 +16,13 @@ namespace REcoSample
      private System.Speech.Recognition.SpeechRecognitionEngine _recognizer = 
         new SpeechRecognitionEngine();
         private SpeechSynthesizer synth = new SpeechSynthesizer();
-        Boolean victory = false;
+        private Boolean victory = false;
 
         private String color="";
         private int contador=0;
         private String[] tablero = new String[9];
-        private int blanco = 0, negro = 0, empate = 0;
+        private int blanco = 0, negro = 0;
+        private Boolean partidaTerminada = false;
         
           
         public Form1()
@@ -61,7 +62,7 @@ namespace REcoSample
           
             string rawText = e.Result.Text;
                       
-            if(color.Equals(rawText.Substring(0,1))){
+            if(!partidaTerminada && color.Equals(rawText.Substring(0,1))){
                 synth.Speak("Ya has jugado, le toca al otro jugador");
             }
             else {
@@ -71,7 +72,7 @@ namespace REcoSample
                 } else if (rawText.Contains("Reiniciar")) {
                     Reiniciar();
                 } 
-                else {
+                else if(!partidaTerminada){
                     int jugada = (int)semantics["posicion"].Value;
 
                     if (tablero[jugada] == null)
@@ -81,7 +82,7 @@ namespace REcoSample
                         if (contador == 9)
                         {
                             synth.Speak("Fin de la partida, no ha habido ganador");
-                            synth.Speak("Si deseas salir diga salir, si desea jugar otra partida diga reiniciar");
+                            synth.Speak("Si deseas salir di salir, si deseas jugar otra partida di reiniciar");
                         }
 
                         color = rawText.Substring(0, 1);
@@ -164,43 +165,36 @@ namespace REcoSample
                     this.labelNegro.Text = negro.ToString();
                 }
                 Update();
-                synth.Speak("Si desea salir diga salir, si desea jugar otra partida diga reiniciar");
+                synth.Speak("Si deseas salir di salir, si deseas jugar otra partida di reiniciar");
+                partidaTerminada = true;
             }
         }
         
         private void Reiniciar()
         {
             synth.Speak("Reiniciando la partida, empieza el jugador blanco");
+            partidaTerminada = false;
             tablero = new String[9];
             contador = 0;
             color = "";
             victory = false;
             this.button0.BackColor = Color.Empty;
-            this.button0.ForeColor = Color.Empty;
             this.button0.Text = "Uno";
             this.button1.BackColor = Color.Empty;
-            this.button1.ForeColor = Color.Empty;
             this.button1.Text = "Dos";
             this.button2.BackColor = Color.Empty;
-            this.button2.ForeColor = Color.Empty;
             this.button2.Text = "Tres";
             this.button3.BackColor = Color.Empty;
-            this.button3.ForeColor = Color.Empty;
             this.button3.Text = "Cuatro";
             this.button4.BackColor = Color.Empty;
-            this.button4.ForeColor = Color.Empty;
             this.button4.Text = "Cinco";
             this.button5.BackColor = Color.Empty;
-            this.button5.ForeColor = Color.Empty;
             this.button5.Text = "Seis";
             this.button6.BackColor = Color.Empty;
-            this.button6.ForeColor = Color.Empty;
             this.button6.Text = "Siete";
             this.button7.BackColor = Color.Empty;
-            this.button7.ForeColor = Color.Empty;
             this.button7.Text = "Ocho";
             this.button8.BackColor = Color.Empty;
-            this.button8.ForeColor = Color.Empty;
             this.button8.Text = "Nueve";
         }
       
