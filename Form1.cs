@@ -21,10 +21,13 @@ namespace REcoSample
         private String color="";
         private int contador=0;
         private String[] tablero = new String[9];
-        private int blanco = 0, negro = 0;
+        private int jugador1 = 0, jugador2 = 0;
         private Boolean partidaTerminada = false;
-        
-          
+        private Boolean colores = false;
+
+        private String colorSel1 = "";
+        private String colorSel2 = "";
+
         public Form1()
         {
             InitializeComponent();
@@ -35,25 +38,39 @@ namespace REcoSample
         {
             synth.Speak("Bienvenidos, Inicializando el juego");
 
-           Grammar grammar= CreateGrammarJugadas();
+           Grammar grammar= CreateGrammarJugadasBN();
+            Grammar grammar2 = CreateGrammarJugadasAR();
+            Grammar grammar3 = CreateGrammarJugadasVA();
+            Grammar grammar4 = CreateGrammarJugadasNA();
             Grammar grammarAction = CreateGrammarActions();
             Grammar grammarReiniciarAction = CreateGrammarReiniciarActions();
+            Grammar eleccionColor = CreateGrammarEleccionColor();
+            Grammar cambiar = CreateGrammarCambiar();
             _recognizer.SetInputToDefaultAudioDevice();
             _recognizer.UnloadAllGrammars();
             // Nivel de confianza del reconocimiento 70%
             _recognizer.UpdateRecognizerSetting("CFGConfidenceRejectionThreshold", 50);
             grammar.Enabled = true;
+            grammar2.Enabled = true;
+            grammar3.Enabled = true;
+            grammar4.Enabled = true;
+            cambiar.Enabled = true;
+            eleccionColor.Enabled = true;
             grammarAction.Enabled = true;
             _recognizer.LoadGrammar(grammar);
+            _recognizer.LoadGrammar(grammar2);
+            _recognizer.LoadGrammar(grammar3);
+            _recognizer.LoadGrammar(grammar4);
             _recognizer.LoadGrammar(grammarAction);
             _recognizer.LoadGrammar(grammarReiniciarAction);
+            _recognizer.LoadGrammar(eleccionColor);
+            _recognizer.LoadGrammar(cambiar);
             _recognizer.SpeechRecognized += new EventHandler<SpeechRecognizedEventArgs>(_recognizer_SpeechRecognized);
             //reconocimiento asíncrono y múltiples veces
             _recognizer.RecognizeAsync(RecognizeMode.Multiple);
-            synth.Speak("Ya estamos listos para jugar");
-         }
-
-     
+            
+            synth.Speak("Para iniciar la partida, indique qué colores quiere utilizar para jugar");
+        }
 
         void _recognizer_SpeechRecognized(object sender, SpeechRecognizedEventArgs e)
         {
@@ -61,47 +78,150 @@ namespace REcoSample
             SemanticValue semantics = e.Result.Semantics;
           
             string rawText = e.Result.Text;
-                      
-            if(!partidaTerminada && color.Equals(rawText.Substring(0,1))){
-                synth.Speak("Ya has jugado, le toca al otro jugador");
+
+            if (!colores)
+            {
+                if (rawText.Contains("Azul") || rawText.Contains("Rojo"))
+                {
+                    this.labelJug1.Text = "Azul:";
+                    this.labelJug2.Text = "Rojo:";
+                    this.labelJug1.ForeColor = SeleccionarColor("Az");
+                    this.labelJug2.ForeColor = SeleccionarColor("Ro");
+                    colorSel1 = "Az";
+                    colorSel2 = "Ro";
+                }
+                else if (rawText.Contains("Verde") || rawText.Contains("Amarillo"))
+                {
+                    this.labelJug1.Text = "Verde:";
+                    this.labelJug2.Text = "Amarillo:";
+                    this.labelJug1.ForeColor = SeleccionarColor("Ve");
+                    this.labelJug2.ForeColor = SeleccionarColor("Am");
+                    colorSel1 = "Ve";
+                    colorSel2 = "Am";
+                }
+                else if (rawText.Contains("Naranja") || rawText.Contains("Morado"))
+                {
+                    this.labelJug1.Text = "Naranja:";
+                    this.labelJug2.Text = "Morado:";
+                    this.labelJug1.ForeColor = SeleccionarColor("Na");
+                    this.labelJug2.ForeColor = SeleccionarColor("Mo");
+                    colorSel1 = "Na";
+                    colorSel2 = "Mo";
+                }
+                else if (rawText.Contains("Blanco") || rawText.Contains("Negro"))
+                {
+                    this.labelJug1.Text = "Blanco:";
+                    this.labelJug2.Text = "Negro:";
+                    this.labelJug1.ForeColor = SeleccionarColor("Bl");
+                    this.labelJug2.ForeColor = SeleccionarColor("Ne");
+                    colorSel1 = "Bl";
+                    colorSel2 = "Ne";
+                }
+                colores = true;
+                this.panel1.Visible = false;
+                this.label2.Visible = true;
+                this.label3.Visible = true;
+                Update();
+                synth.Speak("Ya estamos listos para jugar");
+                return;
             }
-            else {
-                if (rawText.Contains("Salir")) {
+            else 
+            {
+                if (partidaTerminada && rawText.Contains("Cambiar"))
+                {
+                    this.panel1.Visible = true;
+                    this.label2.Visible = false;
+                    this.label3.Visible = false;
+                    colores = false;
+                    Reiniciar();
+                    Update();
+                    synth.Speak("Indique qué colores quiere utilizar para jugar");
+                    return;
+                }
+                else if (!partidaTerminada && color.Equals(rawText.Substring(0, 2)))
+                {
+                    synth.Speak("Ya has jugado, le toca al otro jugador");
+                }
+                else if (rawText.Contains("Salir"))
+                {
                     synth.Speak("Saliendo del juego.");
                     Application.Exit();
-                } else if (rawText.Contains("Reiniciar")) {
+                }
+                else if (rawText.Contains("Reiniciar"))
+                {
                     Reiniciar();
-                } 
-                else if(!partidaTerminada){
-                    int jugada = (int)semantics["posicion"].Value;
-
-                    if (tablero[jugada] == null)
+                }
+                else if(colorSel1 == rawText.Substring(0, 2) ||  colorSel2 == rawText.Substring(0, 2))
+                {
+                    if (!partidaTerminada)
                     {
-                        RealizarJugada(jugada, rawText.Substring(0, 1));
+                        int jugada = (int)semantics["posicion"].Value;
 
-                        if (contador == 9)
+                        if (tablero[jugada] == null)
                         {
-                            synth.Speak("Fin de la partida, no ha habido ganador");
-                            synth.Speak("Si deseas salir di salir, si deseas jugar otra partida di reiniciar");
-                        }
+                            RealizarJugada(jugada, rawText.Substring(0, 2));
 
-                        color = rawText.Substring(0, 1);
-                    }
-                    else
-                    {
-                        synth.Speak("La jugada que has indicado no es válida");
+                            if (contador == 9)
+                            {
+                                partidaTerminada = true;
+                                synth.Speak("Fin de la partida, no ha habido ganador");
+                                synth.Speak("Si deseas salir di salir, si deseas jugar otra partida di reiniciar");
+                            }
+                            else
+                            {
+                                color = rawText.Substring(0, 2);
+                            }
+                        }
+                        else
+                        {
+                            synth.Speak("La jugada que has indicado no es válida");
+                        }
                     }
                 }
+
             }
 
         }
         
+        private Color SeleccionarColor(String jugador)
+        {
+            Color color = Color.Transparent;
+
+            switch (jugador)
+            {
+                case "Az":
+                    color = botonAzul.BackColor;
+                    break;
+                case "Ro":
+                    color = botonRojo.BackColor;
+                    break;
+                case "Ve":
+                    color = botonVerde.BackColor;
+                    break;
+                case "Am":
+                    color = botonAmarillo.BackColor;
+                    break;
+                case "Na":
+                    color = botonNaranja.BackColor;
+                    break;
+                case "Bl":
+                    color = botonBlanco.BackColor;
+                    break;
+                case "Ne":
+                    color = botonNegro.BackColor;
+                    break;
+                case "Mo":
+                    color = botonMorado.BackColor;
+                    break;
+            }
+            return color;
+        }
         private void RealizarJugada(int jugada, string jugador)
         {
 
             tablero[jugada] = jugador;
             contador++;
-            Color color = jugador == "B" ? Color.White : Color.Black;
+            Color color = SeleccionarColor(jugador);
             switch (jugada)
             {
                 case 0:
@@ -153,16 +273,16 @@ namespace REcoSample
             Update();
 
             if (victory) {
-                if(jugador == "B") { 
-                    synth.Speak("El jugador blanco ha ganado");
-                    blanco++;
-                    this.labelBlanco.Text = blanco.ToString();
+                if(jugador == "Az" || jugador == "Ve" || jugador == "Na" || jugador == "Bl") { 
+                    synth.Speak("El jugador uno ha ganado");
+                    jugador1++;
+                    this.labelBlanco.Text = jugador1.ToString();
                 }
                 else
                 {
-                    synth.Speak("El jugador negro ha ganado");
-                    negro++;
-                    this.labelNegro.Text = negro.ToString();
+                    synth.Speak("El jugador dos ha ganado");
+                    jugador2++;
+                    this.labelNegro.Text = jugador2.ToString();
                 }
                 Update();
                 synth.Speak("Si deseas salir di salir, si deseas jugar otra partida di reiniciar");
@@ -198,10 +318,10 @@ namespace REcoSample
             this.button8.Text = "Nueve";
         }
       
-        private Grammar CreateGrammarJugadas()
+        private GrammarBuilder CreatePositions()
         {
             Choices choice = new Choices();
-            
+
             SemanticResultValue choiceResultValue =
                     new SemanticResultValue("uno", 0);
             GrammarBuilder resultValueBuilder = new GrammarBuilder(choiceResultValue);
@@ -230,7 +350,7 @@ namespace REcoSample
             choiceResultValue = new SemanticResultValue("siete", 6);
             resultValueBuilder = new GrammarBuilder(choiceResultValue);
             choice.Add(resultValueBuilder);
-            
+
             choiceResultValue = new SemanticResultValue("ocho", 7);
             resultValueBuilder = new GrammarBuilder(choiceResultValue);
             choice.Add(resultValueBuilder);
@@ -242,17 +362,75 @@ namespace REcoSample
             SemanticResultKey choiceResultKey = new SemanticResultKey("posicion", choice);
             GrammarBuilder posicion = new GrammarBuilder(choiceResultKey);
 
-            
+            return posicion;
+        }
+        private Grammar CreateGrammarEleccionColor()
+        {
+            GrammarBuilder azul = "Azul";
+            GrammarBuilder rojo = "Rojo";
+            GrammarBuilder verde = "Verde";
+            GrammarBuilder amarillo = "Amarillo";
+            GrammarBuilder naranja = "Naranja";
+            GrammarBuilder morado = "Morado";
+            GrammarBuilder negro = "Negro";
+            GrammarBuilder blanco = "Blanco";
+
+            Choices eleccion = new Choices(azul, rojo, verde, amarillo, naranja, morado, negro, blanco);
+            return new Grammar(eleccion);
+        }
+
+        private Grammar CreateGrammarJugadasBN()
+        {
             GrammarBuilder blanco = "Blanco";
             GrammarBuilder negro = "Negro";
-            
-            
             Choices dos_inicios = new Choices(blanco, negro);
             GrammarBuilder frase = new GrammarBuilder(dos_inicios);
             
-            frase.Append(posicion);
+            frase.Append(CreatePositions());
 
             Grammar grammar = new Grammar(frase);            
+
+            return grammar;
+        }
+
+        private Grammar CreateGrammarJugadasAR()
+        {
+            GrammarBuilder azul = "Azul";
+            GrammarBuilder rojo = "Rojo";
+            Choices dos_inicios = new Choices(azul, rojo);
+            GrammarBuilder frase = new GrammarBuilder(dos_inicios);
+
+            frase.Append(CreatePositions());
+
+            Grammar grammar = new Grammar(frase);
+
+            return grammar;
+        }
+
+        private Grammar CreateGrammarJugadasVA()
+        {
+            GrammarBuilder verde = "Verde";
+            GrammarBuilder amarillo = "Amarillo";
+            Choices dos_inicios = new Choices(verde, amarillo);
+            GrammarBuilder frase = new GrammarBuilder(dos_inicios);
+
+            frase.Append(CreatePositions());
+
+            Grammar grammar = new Grammar(frase);
+
+            return grammar;
+        }
+
+        private Grammar CreateGrammarJugadasNA()
+        {
+            GrammarBuilder naranja = "Naranja";
+            GrammarBuilder morado = "Morado";
+            Choices dos_inicios = new Choices(naranja, morado);
+            GrammarBuilder frase = new GrammarBuilder(dos_inicios);
+
+            frase.Append(CreatePositions());
+
+            Grammar grammar = new Grammar(frase);
 
             return grammar;
         }
@@ -264,6 +442,13 @@ namespace REcoSample
             return grammar;
         }
 
+        private Grammar CreateGrammarCambiar()
+        {
+            GrammarBuilder cambiar = new GrammarBuilder("Cambiar");
+            Grammar grammar = new Grammar(cambiar);
+
+            return grammar;
+        }
         private Grammar CreateGrammarReiniciarActions() {
             GrammarBuilder reiniciar = new GrammarBuilder("Reiniciar");
             Grammar grammar = new Grammar(reiniciar); 
